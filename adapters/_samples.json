@@ -1,0 +1,223 @@
+{
+  "lever": [
+    {
+      "name": "Voodoo",
+      "ats_url": "https://jobs.lever.co/voodoo",
+      "careers_url": "https://jobs.lever.co/voodoo"
+    },
+    {
+      "name": "Crytek",
+      "ats_url": "https://jobs.lever.co/crytek",
+      "careers_url": "https://jobs.lever.co/crytek"
+    },
+    {
+      "name": "Unknown Worlds",
+      "ats_url": "https://jobs.lever.co/unknownworlds",
+      "careers_url": "https://jobs.lever.co/unknownworlds/"
+    }
+  ],
+  "workable": [
+    {
+      "name": "Junglee Games",
+      "ats_url": "https://apply.workable.com/junglee-games/?lng=en",
+      "careers_url": "https://apply.workable.com/junglee-games/?lng=en"
+    },
+    {
+      "name": "Jagex",
+      "ats_url": "https://apply.workable.com/jagex-limited/",
+      "careers_url": "https://jobs.lever.co/jagex"
+    },
+    {
+      "name": "Lakshya Digital",
+      "ats_url": "https://apply.workable.com/lakshyadigitalglobal/",
+      "careers_url": "https://apply.workable.com/lakshyadigitalglobal/#jobs"
+    }
+  ],
+  "greenhouse": [
+    {
+      "name": "Bungie",
+      "ats_url": "https://job-boards.greenhouse.io/bungie",
+      "careers_url": "https://careers.bungie.com/jobs"
+    },
+    {
+      "name": "HB studios",
+      "ats_url": "https://boards.greenhouse.io/hbstudios",
+      "careers_url": "https://boards.greenhouse.io/hbstudios"
+    },
+    {
+      "name": "1047 games",
+      "ats_url": "https://job-boards.greenhouse.io/1047games",
+      "careers_url": "https://boards.greenhouse.io/1047games"
+    }
+  ],
+  "breezy": [
+    {
+      "name": "Illfonic",
+      "ats_url": "https://illfonic.breezy.hr/",
+      "careers_url": "https://illfonic.breezy.hr/"
+    },
+    {
+      "name": "DECA Games",
+      "ats_url": "https://deca-games.breezy.hr/",
+      "careers_url": "https://deca-games.breezy.hr/"
+    },
+    {
+      "name": "DigitalFish",
+      "ats_url": "https://digitalfish.breezy.hr/",
+      "careers_url": "https://digitalfish.breezy.hr/"
+    }
+  ],
+  "smartrecruiters": [
+    {
+      "name": "People Can Fly",
+      "ats_url": "https://careers.smartrecruiters.com/PeopleCanFly",
+      "careers_url": "https://careers.smartrecruiters.com/PeopleCanFly"
+    },
+    {
+      "name": "Ubisoft",
+      "ats_url": "https://careers.smartrecruiters.com/Ubisoft2",
+      "careers_url": "https://www.ubisoft.com/en-us/company/careers/search"
+    },
+    {
+      "name": "WayForward Technologies",
+      "ats_url": "https://careers.smartrecruiters.com/WayForwardTechnologies",
+      "careers_url": "https://jobs.smartrecruiters.com/WayForwardTechnologies"
+    }
+  ],
+  "bamboohr": [
+    {
+      "name": "Schell Games",
+      "ats_url": "https://sg.bamboohr.com/careers",
+      "careers_url": "https://sg.bamboohr.com/careers"
+    },
+    {
+      "name": "Bitwise Alchemy",
+      "ats_url": "https://bitwisealchemy.bamboohr.com/careers",
+      "careers_url": "https://bitwisealchemy.bamboohr.com/careers"
+    },
+    {
+      "name": "Final Strike Games",
+      "ats_url": "https://finalstrikegames.bamboohr.com/careers",
+      "careers_url": "https://finalstrikegames.bamboohr.com/careers"
+    }
+  ],
+  "ashby": [
+    {
+      "name": "PlayGig",
+      "ats_url": "https://jobs.ashbyhq.com/playgig/",
+      "careers_url": "https://jobs.ashbyhq.com/playgig/"
+    },
+    {
+      "name": "Regression Games",
+      "ats_url": "https://jobs.ashbyhq.com/regressiongg",
+      "careers_url": "https://jobs.ashbyhq.com/regressiongg"
+    },
+    {
+      "name": "Pocket Worlds",
+      "ats_url": "https://jobs.ashbyhq.com/Pocket%20Worlds/",
+      "careers_url": "https://jobs.ashbyhq.com/Pocket%20Worlds/"
+    }
+  ],
+  "workday": [
+    {
+      "name": "Rocksteady Studios",
+      "ats_url": "https://warnerbros.wd5.myworkdayjobs.com/en-US/global/jobs?q=Rocksteady%20Studio",
+      "careers_url": "https://rocksteadyltd.com/careers/"
+    },
+    {
+      "name": "Activision",
+      "ats_url": "https://activision.wd1.myworkdayjobs.com/External",
+      "careers_url": "https://activision.wd1.myworkdayjobs.com/External"
+    },
+    {
+      "name": "TT Games",
+      "ats_url": "https://warnerbros.wd5.myworkdayjobs.com/global?q=tt-games",
+      "careers_url": "https://warnerbros.wd5.myworkdayjobs.com/global?q=tt-games"
+    }
+  ],
+  "recruitee": [
+    {
+      "name": "Illuvium",
+      "ats_url": "https://illuvium.recruitee.com/",
+      "careers_url": "https://illuvium.recruitee.com/"
+    },
+    {
+      "name": "PlaytestCloud",
+      "ats_url": "https://playtestcloud.recruitee.com/",
+      "careers_url": "https://playtestcloud.recruitee.com/"
+    },
+    {
+      "name": "Focus Entertainment",
+      "ats_url": "https://focusentertainment.recruitee.com/",
+      "careers_url": "https://focusentertainment.recruitee.com/"
+    }
+  ],
+  "jobvite": [
+    {
+      "name": "Scopely",
+      "ats_url": "https://jobs.jobvite.com/scopely/",
+      "careers_url": "https://www.scopely.com/en/careers?jobviteiframe=search%3Fc%3D%26l%3D%26q%3D&nl=1"
+    },
+    {
+      "name": "Kwalee",
+      "ats_url": "https://jobs.jobvite.com/kwalee/jobs",
+      "careers_url": "https://jobs.eu.lever.co/kwalee"
+    },
+    {
+      "name": "SEGA",
+      "ats_url": "https://jobs.jobvite.com/sega-europe-limited/jobs",
+      "careers_url": "https://jobs.jobvite.com/sega-europe-limited/jobs"
+    }
+  ],
+  "join": [
+    {
+      "name": "Thoughtfish GmbH",
+      "ats_url": "https://join.com/companies/thoughtfish",
+      "careers_url": "https://join.com/companies/thoughtfish"
+    },
+    {
+      "name": "GameDuell",
+      "ats_url": "https://join.com/companies/gameduell",
+      "careers_url": "https://join.com/companies/gameduell"
+    },
+    {
+      "name": "Applike",
+      "ats_url": "https://join.com/companies/applike-group",
+      "careers_url": "https://jobs.lever.co/applike"
+    }
+  ],
+  "teamtailor": [
+    {
+      "name": "Goodgame Studios",
+      "ats_url": "https://goodgamestudios.teamtailor.com/jobs",
+      "careers_url": "https://goodgamestudios.teamtailor.com/jobs"
+    },
+    {
+      "name": "CI Games",
+      "ats_url": "https://cigames.teamtailor.com/jobs",
+      "careers_url": "https://cigames.teamtailor.com/jobs"
+    },
+    {
+      "name": "Netspeak Games",
+      "ats_url": "https://netspeakgames.teamtailor.com/jobs",
+      "careers_url": "https://netspeakgames.teamtailor.com/jobs"
+    }
+  ],
+  "personio": [
+    {
+      "name": "Vertigo games",
+      "ats_url": "https://vertigo-games.jobs.personio.com/",
+      "careers_url": "https://vertigo-games.jobs.personio.com/"
+    },
+    {
+      "name": "Bigpoint",
+      "ats_url": "https://bigpoint.jobs.personio.de/",
+      "careers_url": "https://bigpoint.jobs.personio.de/"
+    },
+    {
+      "name": "PlayerUnknown Productions",
+      "ats_url": "https://ppstudio.jobs.personio.com/",
+      "careers_url": ""
+    }
+  ]
+}
