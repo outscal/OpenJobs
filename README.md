@@ -70,11 +70,85 @@ Outscal-Jobs keeps every feature of upstream career-ops (JD evaluation, PDF gene
 |---|---|
 | `harvest.mjs` | Multi-ATS harvester. Reads `data/companies.json`, routes each company through the adapter registry, fetches live job listings, and emits `output/jobs-YYYY-MM-DD.csv` + `output/jobs-manual-YYYY-MM-DD.csv`. |
 | `adapters/` | 13 ATS adapters with a common `detect()` / `fetchJobs()` interface: Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Workday, Teamtailor, Recruitee, Personio, Breezy, BambooHR, Jobvite, Join.com. |
-| `probe-ats.mjs` | Slug-probes un-routed companies against the 9 public slug-based ATS APIs to find boards that `ats_links` in the dataset missed — used to expand the reachable company set beyond what the dataset already marked. |
-| `data/companies.json` | Outscal's production dataset: 12,144 company records with `type`, `ats_links`, `industry_category`, `tech_stack`, and other metadata. |
-| `/outscal-jobs` slash command | Renamed from `/career-ops` (skill lives at `.claude/skills/outscal-jobs/SKILL.md`). Both names continue to work. |
+| `probe-ats.mjs` | Slug-probes un-routed companies against public slug-based ATS APIs to find boards that `ats_links` in the dataset missed — used to expand the reachable company set beyond what the dataset already marked. See [Expanding the Company Dataset](#expanding-the-company-dataset). |
+| `merge-probe-hits.mjs` | Applies `probe-ats.mjs` output back to `data/companies.json` — appends newly-discovered ATS URLs to each company's `ats_links` so `harvest.mjs` can route them. Default dry-run, writes a backup before modifying the source. |
+| `data/companies.json` | Outscal's production dataset: 12,144 company records with `type`, `ats_links`, `industry_category`, `tech_stack`, and other metadata. Currently **~2,100 of these route to a working ATS adapter** (up from the original 1,480 after the initial probe sweep). |
+| `/outscal-jobs` slash command | Renamed from `/career-ops` (skill lives at `.claude/skills/outscal-jobs/SKILL.md`). Both names continue to work. Full flag reference there. |
 
 **What's unchanged:** the upstream career-ops modes, scoring logic (A–G blocks), PDF template, dashboard TUI, batch runners, pipeline integrity checks, and update-system infrastructure all remain intact and keep receiving upstream updates via `update-system.mjs`.
+
+## Quick Start: Harvest Gaming Jobs
+
+Two ways to run the harvester — whichever is more convenient.
+
+### Option A: Slash command (inside Claude Code / OpenCode)
+
+Open the repo in Claude Code (or OpenCode) and type:
+
+```
+/outscal-jobs harvest --industry gaming
+```
+
+That's it. The AI runs the harvester, filters to gaming companies only, and tells you where the CSV landed.
+
+Useful variants of the same command:
+
+| Slash command | What it does |
+|---|---|
+| `/outscal-jobs harvest --industry gaming` | Gaming companies only |
+| `/outscal-jobs harvest --industry tech` | Tech companies only |
+| `/outscal-jobs harvest --industry gaming --country india` | Gaming + India-based roles |
+| `/outscal-jobs harvest --industry gaming --ats greenhouse` | Gaming + only Greenhouse-hosted |
+| `/outscal-jobs harvest --limit 50 --dry-run` | Quick smoke test — count only, no CSV |
+| `/outscal-jobs harvest` | Full harvest across all 2,100+ routable companies, using `portals.yml` filters |
+
+The full flag list and more modes (evaluation, PDF generation, tracker, etc.) live in `.claude/skills/outscal-jobs/SKILL.md`. Run `/outscal-jobs` with no arguments to see the whole menu.
+
+### Option B: Plain Node CLI (no Claude Code required)
+
+```bash
+# Gaming companies only
+node harvest.mjs --industry gaming
+
+# Gaming + geography filter
+node harvest.mjs --industry gaming --country india
+
+# Single company
+node harvest.mjs --company "Riot Games"
+
+# Dry-run — count what would be fetched, no CSV written
+node harvest.mjs --industry gaming --dry-run
+```
+
+Outputs:
+- `output/jobs-YYYY-MM-DD.csv` — the harvested job listings (this is the file you want).
+- `output/jobs-manual-YYYY-MM-DD.csv` — companies hosted on LinkedIn/Wellfound and similar, flagged for manual review.
+
+Filter behavior is defined in `portals.yml` (title keywords, location include/exclude). CLI flags override `portals.yml` when both are set.
+
+## Expanding the Company Dataset
+
+Over time, some companies in `data/companies.json` (~12K rows) gain a public ATS board — or had one we didn't catch at ingest. Two scripts keep the **harvest.mjs-reachable set** (currently **~2,100 companies**) growing:
+
+```bash
+# 1. Discover: slug-probe the un-routed companies against 7 public ATS APIs
+#    (Greenhouse, Lever, Ashby, SmartRecruiters, Recruitee, Breezy, BambooHR).
+#    Output: output/ats-probe-YYYY-MM-DD.csv
+node probe-ats.mjs
+
+# 2. Review the CSV by hand — sort by matched_ats and eyeball sample_title for
+#    collisions (short slugs on common words can false-positive).
+
+# 3. Dry-run merge — see what would be added to companies.json, no file changes
+node merge-probe-hits.mjs --csv output/ats-probe-YYYY-MM-DD.csv
+
+# 4. Apply the merge — backup is written automatically
+node merge-probe-hits.mjs --csv output/ats-probe-YYYY-MM-DD.csv --write
+```
+
+Full sweep of ~10K un-routed companies takes **~40 minutes** on a typical connection. Workable and Personio are skipped by default because they IP-rate-limit aggressively; re-enable them in `probe-ats.mjs` (`PER_ATS_MAX`) if you want to probe them as a separate slow pass.
+
+The merge script is idempotent — re-running it skips URLs already present — so it's safe to run as often as you want.
 
 ## Staying in Sync with Upstream
 
