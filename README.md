@@ -1,4 +1,6 @@
-# Career-Ops
+# Outscal-Jobs
+
+> **Fork notice:** This project is a fork of **[santifer/career-ops](https://github.com/santifer/career-ops)** maintained by [Outscal](https://outscal.com). MIT-licensed, with all original attribution to Santiago Fernández preserved. The upstream repository remains the source of truth for the core career-ops system; this fork adds a multi-ATS job-harvesting layer on top of it. See [Changes in This Fork](#changes-in-this-fork) below, and [Staying in Sync with Upstream](#staying-in-sync-with-upstream) for how upstream updates are pulled.
 
 [English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [繁體中文](README.zh-TW.md)
 
@@ -59,6 +61,53 @@ Career-ops is agentic: Claude Code navigates career pages with Playwright, evalu
 > **Heads up: the first evaluations won't be great.** The system doesn't know you yet. Feed it context -- your CV, your career story, your proof points, your preferences, what you're good at, what you want to avoid. The more you nurture it, the better it gets. Think of it as onboarding a new recruiter: the first week they need to learn about you, then they become invaluable.
 
 Built by someone who used it to evaluate 740+ job offers, generate 100+ tailored CVs, and land a Head of Applied AI role. [Read the full case study](https://santifer.io/career-ops-system).
+
+## Changes in This Fork
+
+Outscal-Jobs keeps every feature of upstream career-ops (JD evaluation, PDF generation, tracker, portal scan, pipeline, batch, dashboard) and adds a **multi-ATS job-harvesting layer** targeted at Outscal's production dataset of ~12K gaming/tech/AI companies.
+
+| Added | What it does |
+|---|---|
+| `harvest.mjs` | Multi-ATS harvester. Reads `data/companies.json`, routes each company through the adapter registry, fetches live job listings, and emits `output/jobs-YYYY-MM-DD.csv` + `output/jobs-manual-YYYY-MM-DD.csv`. |
+| `adapters/` | 13 ATS adapters with a common `detect()` / `fetchJobs()` interface: Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Workday, Teamtailor, Recruitee, Personio, Breezy, BambooHR, Jobvite, Join.com. |
+| `probe-ats.mjs` | Slug-probes un-routed companies against the 9 public slug-based ATS APIs to find boards that `ats_links` in the dataset missed — used to expand the reachable company set beyond what the dataset already marked. |
+| `data/companies.json` | Outscal's production dataset: 12,144 company records with `type`, `ats_links`, `industry_category`, `tech_stack`, and other metadata. |
+| `/outscal-jobs` slash command | Renamed from `/career-ops` (skill lives at `.claude/skills/outscal-jobs/SKILL.md`). Both names continue to work. |
+
+**What's unchanged:** the upstream career-ops modes, scoring logic (A–G blocks), PDF template, dashboard TUI, batch runners, pipeline integrity checks, and update-system infrastructure all remain intact and keep receiving upstream updates via `update-system.mjs`.
+
+## Staying in Sync with Upstream
+
+Two paths are available, not mutually exclusive.
+
+### Path 1: `update-system.mjs` (works out of the box — no setup required)
+
+```bash
+node update-system.mjs check      # see if a new upstream version is published
+node update-system.mjs apply      # apply only system-layer files — your data is never touched
+node update-system.mjs rollback   # undo the last update
+```
+
+This is a santifer-designed auto-updater that pulls ONLY generic system-layer files (modes, PDF scripts, dashboard, templates) from [santifer/career-ops](https://github.com/santifer/career-ops). The upstream repository URL is **hardcoded inside the script** — so anyone who clones this fork gets the sync mechanism immediately with zero git configuration. User-layer files (`cv.md`, `config/profile.yml`, `modes/_profile.md`, `data/`, `reports/`, `output/`) and fork-specific files (`harvest.mjs`, `adapters/`, `probe-ats.mjs`, `data/companies.json`) are never overwritten. `CLAUDE.md` also instructs the AI to run `update-system.mjs check` silently on the first message of each session, so upstream updates surface automatically.
+
+### Path 2: Git `upstream` remote (for visibility and cherry-picking)
+
+Git remotes are **not** copied during `git clone`, so you need to add the upstream remote manually once after cloning:
+
+```bash
+git remote add upstream https://github.com/santifer/career-ops.git
+git remote set-url --push upstream DISABLED   # safety: prevent accidental pushes to upstream
+git fetch upstream
+```
+
+After that, you can explore upstream:
+```bash
+git log upstream/main --oneline             # see what santifer has released
+git show upstream/<sha> -- path/to/file     # preview a specific upstream change
+git cherry-pick <sha>                       # selectively apply an upstream commit
+```
+
+Direct `git merge upstream/main` is **not recommended** — this fork's git history is a clean initial commit and does not share history with upstream, so merges would require `--allow-unrelated-histories` and produce large conflicts. Use `update-system.mjs` for routine updates, or manual cherry-picks when you want to pull a specific upstream change.
 
 ## Features
 

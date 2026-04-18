@@ -4,17 +4,23 @@
 
 This is a fork of **career-ops** tuned for a different purpose:
 
-**Primary use case (V1):** harvest fresh job listings from ~2,000 gaming/tech companies whose public ATS APIs we support (Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Workday, Teamtailor, Recruitee, Personio, Breezy, BambooHR, Jobvite, Join). Filter against the user's CV (growth marketing in this user's case) and emit a CSV.
+**Primary use case (V1):** harvest fresh job listings from gaming/tech companies whose public ATS APIs we support (13 adapters in `adapters/` — Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Workday, Teamtailor, Recruitee, Personio, Breezy, BambooHR, Jobvite, Join). Filter against the user's CV and emit a CSV.
 
-**Input:** `data/companies_v2.json` (Outscal's production companies dataset; 12,144 rows, ~6,529 with ATS links).
+**Input:** `data/companies.json` (Outscal's production companies dataset; 12,144 rows). Of these, ~1,480 route to a working public ATS API out of the box.
 **Output:** `output/jobs-YYYY-MM-DD.csv` + `output/jobs-manual-YYYY-MM-DD.csv` (for LinkedIn/Wellfound flagged manually).
-**Script:** `harvest.mjs` (new) coexists with legacy `scan.mjs`.
 
-V1 ignores the `jobs` field that may already be embedded in companies_v2.json (it's stale) and re-fetches live.
+**Fork-specific scripts** (additive — legacy career-ops scripts still work):
+- `harvest.mjs` — the main harvester. Coexists with legacy `scan.mjs`.
+- `probe-ats.mjs` — slug-probes un-routed companies against the 9 public slug-based ATS APIs (Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Recruitee, Breezy, BambooHR, Personio) to discover boards that `ats_links` didn't mark. Output: `output/ats-probe-YYYY-MM-DD*.csv`. Used to expand the reachable company set beyond the ~1,480 already routed.
+- `adapters/` — 13 ATS adapters with a common `detect()` / `fetchJobs()` interface. See `adapters/README.md`.
+
+V1 ignores the `jobs` field that may already be embedded in companies.json (it's stale) and re-fetches live.
 
 All legacy career-ops modes (evaluation, PDF, tracker, etc.) are retained — you can still paste a JD and get an A–G evaluation. The harvester is additive.
 
-The slash command in this fork is `/outscal-jobs` (not `/career-ops`).
+The slash command in this fork is `/outscal-jobs` (not `/career-ops`), though both continue to work.
+
+**Upstream sync:** two paths. **Zero-setup path:** `node update-system.mjs check` — the upstream URL is hardcoded in the script, so this works for any clone without extra git configuration. It pulls only generic system-layer files and never overwrites fork-specific files (`harvest.mjs`, `adapters/`, `probe-ats.mjs`, `data/companies.json`) or user data. **Optional manual path:** add the upstream remote explicitly with `git remote add upstream https://github.com/santifer/career-ops.git && git remote set-url --push upstream DISABLED && git fetch upstream` — useful for visibility / cherry-picking. Direct `git merge upstream/main` is not recommended because this fork's history is a clean initial commit without shared history with upstream.
 
 ## Origin (career-ops)
 

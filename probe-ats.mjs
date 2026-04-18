@@ -95,8 +95,15 @@ const PROBES = [
   },
   {
     ats: 'breezy',
+    // NOTE: breezy.hr's /json endpoint returns 200 + "[]" for ANY subdomain that
+    // happens to resolve — same wildcard-accept pattern as SmartRecruiters. We
+    // only count it as a hit when count > 0, otherwise every slug falsely matches.
+    // Tradeoff: we miss Breezy tenants with 0 current postings.
     url: s => `https://${s}.breezy.hr/json`,
-    validate: j => Array.isArray(j?.positions) || Array.isArray(j),
+    validate: j => {
+      const arr = Array.isArray(j?.positions) ? j.positions : (Array.isArray(j) ? j : null);
+      return arr !== null && arr.length > 0;
+    },
     count: j => (j?.positions || j || []).length,
     sample: j => (j?.positions || j || [])[0]?.name || '',
   },
