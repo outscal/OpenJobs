@@ -20,28 +20,34 @@ import { routeCompany } from './adapters/index.mjs';
 
 const TIMEOUT_MS = 8000;
 
-// Per-ATS concurrency caps. Kept conservative so no provider sees a flood.
-// Each ATS is bounded independently via its own semaphore, so total in-flight
-// requests = sum of these ≈ 45. Well below typical public-API thresholds.
+// Per-ATS concurrency caps. Central-host APIs stay conservative to avoid
+// provider rate limits; tenant-subdomain ATSs probe a different host per
+// request, so there's no shared rate limit and we can safely run many
+// concurrent probes (each goes to a distinct {slug}.{ats}.com DNS/server).
 const PER_ATS_MAX = {
-  greenhouse: 6,
-  lever: 6,
-  ashby: 5,
-  workable: 5,
-  smartrecruiters: 6,
-  recruitee: 5,
-  breezy: 4,
-  bamboohr: 4,
-  personio: 4,
+  // Central APIs — single host, shared rate limits. Keep conservative.
+  greenhouse: 8,
+  lever: 8,
+  ashby: 6,
+  smartrecruiters: 8,
+  // Tenant-subdomain ATSs — each probe hits a different host. Safe at higher limits.
+  recruitee: 20,
+  breezy: 20,
+  bamboohr: 20,
+  // DISABLED in the default sweep — these two IP-rate-limit aggressively and every
+  // probe gets 429'd, producing no hits while dragging total runtime from ~20 min
+  // to 3+ hours. Run them as a separate pass via --only workable,personio later.
+  // workable: 6,
+  // personio: 5,
 };
 
 // Number of (company,slug) units in flight at once. Real throttle is per-ATS above;
 // this just keeps the event loop saturated.
-const UNIT_CONCURRENCY = 40;
+const UNIT_CONCURRENCY = 80;
 
 // Retry once on 429 (rate limit) or 5xx with a 3s backoff.
 const RETRY_STATUSES = new Set([429, 502, 503, 504]);
-const RETRY_BACKOFF_MS = 3000;
+const RETRY_BACKOFF_MS = 1000;
 
 // ── Probe definitions ──────────────────────────────────────────────
 // Each probe: URL template from a slug, how to validate the response,
@@ -167,6 +173,10 @@ class Semaphore {
 
 const SEM = Object.fromEntries(Object.entries(PER_ATS_MAX).map(([k, v]) => [k, new Semaphore(v)]));
 
+// Only probes with an active PER_ATS_MAX entry run. Probes for ATSs commented out
+// (workable/personio) are filtered out here so SEM[p.ats] is always defined.
+const ACTIVE_PROBES = PROBES.filter(p => PER_ATS_MAX[p.ats] !== undefined);
+
 // Track rate-limit hits per ATS so we can surface them in the summary.
 const RATE_LIMIT_HITS = Object.fromEntries(Object.keys(PER_ATS_MAX).map(k => [k, 0]));
 
@@ -268,14 +278,18 @@ async function main() {
     console.log(`After --limit=${args.limit}: ${unrouted.length}`);
   }
 
-  // Build units: each unit = (company, slug_variant). Unit probes all 9 ATSs serially.
-  const units = [];
+  // Flatten into independent (company, slug, probe) tasks. No per-unit Promise.all —
+  // each task is bounded only by its ATS semaphore. This removes head-of-line blocking
+  // where one slow ATS request would stall 8 fast ones waiting on the same unit.
+  const tasks = [];
   for (const c of unrouted) {
-    for (const slug of slugVariants(c)) units.push({ c, slug });
+    for (const slug of slugVariants(c)) {
+      for (const p of ACTIVE_PROBES) tasks.push({ c, slug, p });
+    }
   }
-  console.log(`(company,slug) units: ${units.length}`);
-  console.log(`Max HTTP requests: ${units.length * PROBES.length}`);
-  console.log(`Unit concurrency: ${UNIT_CONCURRENCY}  Per-ATS caps: ${Object.entries(PER_ATS_MAX).map(([k,v])=>`${k}=${v}`).join(', ')}`);
+  console.log(`Total probe tasks (company × slug × ATS): ${tasks.length}`);
+  console.log(`Per-ATS caps: ${Object.entries(PER_ATS_MAX).map(([k,v])=>`${k}=${v}`).join(', ')}`);
+  console.log(`Theoretical peak concurrent HTTP: ${Object.values(PER_ATS_MAX).reduce((a,b)=>a+b,0)}`);
   console.log(`Timeout: ${TIMEOUT_MS}ms  Retry: once on ${[...RETRY_STATUSES].join('/')} after ${RETRY_BACKOFF_MS}ms\n`);
 
   fs.mkdirSync('output', { recursive: true });
@@ -284,39 +298,34 @@ async function main() {
   const outPath = path.join('output', `ats-probe-${date}${suffix}.csv`);
   fs.writeFileSync(outPath, 'company_name,company_type,slug_tried,matched_ats,job_count,sample_title\n');
 
-  let done = 0, unitsWithHit = 0, companiesWithHit = new Set();
-  const perAts = Object.fromEntries(PROBES.map(p => [p.ats, 0]));
+  let done = 0, hits = 0;
+  const companiesWithHit = new Set();
+  const perAts = Object.fromEntries(ACTIVE_PROBES.map(p => [p.ats, 0]));
   const t0 = Date.now();
 
-  await runPool(units, async ({ c, slug }) => {
-    // Fire all 9 ATS probes for this slug in parallel. Each one is bounded by its
-    // own per-ATS semaphore, so this can't flood any single provider.
-    const results = await Promise.all(PROBES.map(async p => {
-      const r = await probeOne(p, slug);
-      return r ? { ats: p.ats, count: r.count, sample: r.sample } : null;
-    }));
-    const matches = results.filter(Boolean);
+  // Fire all tasks. Per-ATS semaphores inside probeOne() are the real throttle —
+  // they block acquire() until a slot is free. Promise queue holds the rest.
+  await Promise.all(tasks.map(async ({ c, slug, p }) => {
+    const r = await probeOne(p, slug);
     done++;
-    if (matches.length) {
-      unitsWithHit++;
+    if (r) {
+      hits++;
       companiesWithHit.add(c._id?.$oid || c.name);
-      for (const m of matches) {
-        perAts[m.ats]++;
-        fs.appendFileSync(outPath, [c.name, c.type, slug, m.ats, m.count, m.sample].map(csvEscape).join(',') + '\n');
-      }
+      perAts[p.ats]++;
+      fs.appendFileSync(outPath, [c.name, c.type, slug, p.ats, r.count, r.sample].map(csvEscape).join(',') + '\n');
     }
-    if (done % 50 === 0) {
+    if (done % 2000 === 0) {
       const sec = (Date.now() - t0) / 1000;
       const rate = done / sec;
-      const eta = Math.round((units.length - done) / rate);
-      console.log(`  [${done}/${units.length}]  hits:${unitsWithHit}  companies-matched:${companiesWithHit.size}  ${rate.toFixed(1)} units/s  eta:${eta}s`);
+      const eta = Math.round((tasks.length - done) / rate);
+      console.log(`  [${done}/${tasks.length}] ${(100*done/tasks.length).toFixed(1)}%  hits:${hits}  companies:${companiesWithHit.size}  ${rate.toFixed(0)} req/s  eta:${eta}s`);
     }
-  }, UNIT_CONCURRENCY);
+  }));
 
   const sec = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`\nDone in ${sec}s`);
-  console.log(`Units probed: ${units.length}`);
-  console.log(`Units with at least one hit: ${unitsWithHit}`);
+  console.log(`Probe tasks completed: ${tasks.length}`);
+  console.log(`Probe hits (CSV rows): ${hits}`);
   console.log(`Unique companies matched: ${companiesWithHit.size}`);
   console.log(`Companies probed: ${unrouted.length}`);
   console.log(`Hit rate per company: ${(100 * companiesWithHit.size / unrouted.length).toFixed(1)}%`);
