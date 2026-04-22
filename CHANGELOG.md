@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0 (2026-04-22)
+
+
+### Features
+
+* add probe-ats.mjs; attribute career-ops fork in docs and LICENSE ([8e9b1bc](https://github.com/outscal/OpenJobs/commit/8e9b1bc5da599aecb73c95e902ffe0342a3fac99))
+* scale probe-ats to ~108 req/s; merge 691 newly-routable companies ([93e8c5a](https://github.com/outscal/OpenJobs/commit/93e8c5aaa287a6a078b3d9662e2434fc76d00479))
+
 ## [1.5.0](https://github.com/santifer/career-ops/compare/v1.4.0...v1.5.0) (2026-04-14)
 
 
