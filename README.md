@@ -1,404 +1,235 @@
-# Outscal-Jobs
+# OpenJobs
 
-> **Fork notice:** This project is a fork of **[santifer/career-ops](https://github.com/santifer/career-ops)** maintained by [Outscal](https://outscal.com). MIT-licensed, with all original attribution to Santiago Fernández preserved. The upstream repository remains the source of truth for the core career-ops system; this fork adds a multi-ATS job-harvesting layer on top of it. See [Changes in This Fork](#changes-in-this-fork) below, and [Staying in Sync with Upstream](#staying-in-sync-with-upstream) for how upstream updates are pulled.
+> An open dataset of **12,144 gaming and tech companies** with the countries they hire in, plus a Node CLI that turns that dataset into a live feed of real job openings by querying each company's public ATS (Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Workday, Teamtailor, Recruitee, Personio, Breezy, BambooHR, Jobvite, Join.com).
 
-[English](README.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [한국어](README.ko-KR.md) | [日本語](README.ja.md) | [Русский](README.ru.md) | [繁體中文](README.zh-TW.md)
+> **Fork notice.** This project is a fork of **[santifer/career-ops](https://github.com/santifer/career-ops)** maintained by [Outscal](https://outscal.com). MIT-licensed, all original attribution to Santiago Fernández preserved. Upstream remains the source of truth for the evaluation/CV/pipeline system; this fork adds the company dataset and the multi-ATS job harvester on top.
 
-<p align="center">
-  <a href="https://x.com/santifer"><img src="docs/hero-banner.jpg" alt="Career-Ops — Multi-Agent Job Search System" width="800"></a>
-</p>
-
-<p align="center">
-  <em>I spent months applying to jobs the hard way. So I engineered the system I wish I had.</em><br>
-  Companies use AI to filter candidates. <strong>I gave candidates AI to <em>choose</em> companies.</strong><br>
-  <em>Now it's open source.</em>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Claude_Code-000?style=flat&logo=anthropic&logoColor=white" alt="Claude Code">
-  <img src="https://img.shields.io/badge/OpenCode-111827?style=flat&logo=terminal&logoColor=white" alt="OpenCode">
-  <img src="https://img.shields.io/badge/Codex_(soon)-6B7280?style=flat&logo=openai&logoColor=white" alt="Codex">
-  <img src="https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
-  <img src="https://img.shields.io/badge/Playwright-2EAD33?style=flat&logo=playwright&logoColor=white" alt="Playwright">
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT">
-  <a href="https://discord.gg/8pRpHETxa4"><img src="https://img.shields.io/badge/Discord-5865F2?style=flat&logo=discord&logoColor=white" alt="Discord"></a>
-  <br>
-  <img src="https://img.shields.io/badge/EN-blue?style=flat" alt="EN">
-  <img src="https://img.shields.io/badge/ES-red?style=flat" alt="ES">
-  <img src="https://img.shields.io/badge/DE-grey?style=flat" alt="DE">
-  <img src="https://img.shields.io/badge/FR-blue?style=flat" alt="FR">
-  <img src="https://img.shields.io/badge/PT--BR-green?style=flat" alt="PT-BR">
-  <img src="https://img.shields.io/badge/KO-white?style=flat" alt="KO">
-  <img src="https://img.shields.io/badge/JA-red?style=flat" alt="JA">
-  <img src="https://img.shields.io/badge/ZH--TW-blue?style=flat" alt="ZH-TW">
-</p>
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)
+![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ---
 
-<p align="center">
-  <img src="docs/demo.gif" alt="Career-Ops Demo" width="800">
-</p>
+## The dataset — `data/companies_v2.json`
 
-<p align="center"><strong>740+ job listings evaluated · 100+ personalized CVs · 1 dream role landed</strong></p>
+One JSON file, 12,144 records, one object per company:
 
-<p align="center"><a href="https://discord.gg/8pRpHETxa4"><img src="https://img.shields.io/badge/Join_the_community-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a></p>
-
-## What Is This
-
-Career-Ops turns any AI coding CLI into a full job search command center. Instead of manually tracking applications in a spreadsheet, you get an AI-powered pipeline that:
-
-- **Evaluates offers** with a structured A-F scoring system (10 weighted dimensions)
-- **Generates tailored PDFs** -- ATS-optimized CVs customized per job description
-- **Scans portals** automatically (Greenhouse, Ashby, Lever, company pages)
-- **Processes in batch** -- evaluate 10+ offers in parallel with sub-agents
-- **Tracks everything** in a single source of truth with integrity checks
-
-> **Important: This is NOT a spray-and-pray tool.** Career-ops is a filter -- it helps you find the few offers worth your time out of hundreds. The system strongly recommends against applying to anything scoring below 4.0/5. Your time is valuable, and so is the recruiter's. Always review before submitting.
-
-Career-ops is agentic: Claude Code navigates career pages with Playwright, evaluates fit by reasoning about your CV vs the job description (not keyword matching), and adapts your resume per listing.
-
-> **Heads up: the first evaluations won't be great.** The system doesn't know you yet. Feed it context -- your CV, your career story, your proof points, your preferences, what you're good at, what you want to avoid. The more you nurture it, the better it gets. Think of it as onboarding a new recruiter: the first week they need to learn about you, then they become invaluable.
-
-Built by someone who used it to evaluate 740+ job offers, generate 100+ tailored CVs, and land a Head of Applied AI role. [Read the full case study](https://santifer.io/career-ops-system).
-
-## Changes in This Fork
-
-Outscal-Jobs keeps every feature of upstream career-ops (JD evaluation, PDF generation, tracker, portal scan, pipeline, batch, dashboard) and adds a **multi-ATS job-harvesting layer** targeted at Outscal's production dataset of ~12K gaming/tech/AI companies.
-
-| Added | What it does |
-|---|---|
-| `harvest.mjs` | Multi-ATS harvester. Reads `data/companies.json`, routes each company through the adapter registry, fetches live job listings, and emits `output/jobs-YYYY-MM-DD.csv` + `output/jobs-manual-YYYY-MM-DD.csv`. |
-| `adapters/` | 13 ATS adapters with a common `detect()` / `fetchJobs()` interface: Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Workday, Teamtailor, Recruitee, Personio, Breezy, BambooHR, Jobvite, Join.com. |
-| `probe-ats.mjs` | Slug-probes un-routed companies against public slug-based ATS APIs to find boards that `ats_links` in the dataset missed — used to expand the reachable company set beyond what the dataset already marked. See [Expanding the Company Dataset](#expanding-the-company-dataset). |
-| `merge-probe-hits.mjs` | Applies `probe-ats.mjs` output back to `data/companies.json` — appends newly-discovered ATS URLs to each company's `ats_links` so `harvest.mjs` can route them. Default dry-run, writes a backup before modifying the source. |
-| `data/companies.json` | Outscal's production dataset: 12,144 company records with `type`, `ats_links`, `industry_category`, `tech_stack`, and other metadata. Currently **~2,100 of these route to a working ATS adapter** (up from the original 1,480 after the initial probe sweep). |
-| `/outscal-jobs` slash command | Renamed from `/career-ops` (skill lives at `.claude/skills/outscal-jobs/SKILL.md`). Both names continue to work. Full flag reference there. |
-
-**What's unchanged:** the upstream career-ops modes, scoring logic (A–G blocks), PDF template, dashboard TUI, batch runners, pipeline integrity checks, and update-system infrastructure all remain intact and keep receiving upstream updates via `update-system.mjs`.
-
-## Quick Start: Harvest Gaming Jobs
-
-Two ways to run the harvester — whichever is more convenient.
-
-### Option A: Slash command (inside Claude Code / OpenCode)
-
-Open the repo in Claude Code (or OpenCode) and type:
-
-```
-/outscal-jobs harvest --industry gaming
+```jsonc
+{
+  "name": "Virtusa",
+  "website": "https://www.virtusa.com",
+  "industry_category": "tech",      // "gaming" | "tech"
+  "type": "tech",
+  "game_genre": ["mobile", "pc-console-aaa"],
+  "tech_stack": ["unity", "c#"],
+  "ats_links":  ["https://careers.virtusa.com/..."],
+  "list_urls":  ["https://careers.virtusa.com/..."],
+  "countries":  ["Canada", "India", "Spain", "Sri Lanka",
+                 "United Arab Emirates", "United Kingdom", "United States"]
+}
 ```
 
-That's it. The AI runs the harvester, filters to gaming companies only, and tells you where the CSV landed.
+**What's in it today**
 
-Useful variants of the same command:
-
-| Slash command | What it does |
+| | |
 |---|---|
-| `/outscal-jobs harvest --industry gaming` | Gaming companies only |
-| `/outscal-jobs harvest --industry tech` | Tech companies only |
-| `/outscal-jobs harvest --industry gaming --country india` | Gaming + India-based roles |
-| `/outscal-jobs harvest --industry gaming --ats greenhouse` | Gaming + only Greenhouse-hosted |
-| `/outscal-jobs harvest --limit 50 --dry-run` | Quick smoke test — count only, no CSV |
-| `/outscal-jobs harvest` | Full harvest across all 2,100+ routable companies, using `portals.yml` filters |
+| Companies total | **12,144** |
+| With an `ats_links` entry | **7,007** |
+| Routable to a working ATS adapter today | **~2,100** |
+| With at least one known hiring country | **2,529** |
+| Unique countries represented | **155** |
+| Industry split | 8,350 gaming · 2,534 tech |
 
-The full flag list and more modes (evaluation, PDF generation, tracker, etc.) live in `.claude/skills/outscal-jobs/SKILL.md`. Run `/outscal-jobs` with no arguments to see the whole menu.
+**Top countries** (by number of companies hiring there): United States (1,301), India (817), United Kingdom (670), Canada (493), Germany (373), Australia (291), France (254), Japan (248), Singapore (236), Spain (223), Poland (217), Mexico (211), Netherlands (209), Brazil (193), China (171).
 
-### Option B: Plain Node CLI (no Claude Code required)
+The `countries` array is derived by joining each company's job postings against a geocoded `locations` table and taking the set of unique countries. See [Regenerating `countries`](#regenerating-the-countries-field) below.
+
+---
+
+## Searching the dataset
+
+The dataset is plain JSON — you can query it with `jq`, a one-liner in Node, or whatever you prefer. A few recipes to get you started.
+
+### 1. Companies hiring in a specific country
 
 ```bash
-# Gaming companies only
-node harvest.mjs --industry gaming
+# Every gaming company currently hiring in Japan
+jq '[.[] | select(.industry_category == "gaming" and (.countries // []) | index("Japan"))] | length' data/companies_v2.json
 
-# Gaming + geography filter
-node harvest.mjs --industry gaming --country india
-
-# Single company
-node harvest.mjs --company "Riot Games"
-
-# Dry-run — count what would be fetched, no CSV written
-node harvest.mjs --industry gaming --dry-run
+# List their names and websites
+jq -r '.[] | select(.industry_category == "gaming" and (.countries // []) | index("Japan")) | "\(.name)\t\(.website)"' data/companies_v2.json
 ```
 
-Outputs:
-- `output/jobs-YYYY-MM-DD.csv` — the harvested job listings (this is the file you want).
-- `output/jobs-manual-YYYY-MM-DD.csv` — companies hosted on LinkedIn/Wellfound and similar, flagged for manual review.
-
-Filter behavior is defined in `portals.yml` (title keywords, location include/exclude). CLI flags override `portals.yml` when both are set.
-
-## Expanding the Company Dataset
-
-Over time, some companies in `data/companies.json` (~12K rows) gain a public ATS board — or had one we didn't catch at ingest. Two scripts keep the **harvest.mjs-reachable set** (currently **~2,100 companies**) growing:
+### 2. Companies with jobs in **multiple** countries (likely to sponsor relocation)
 
 ```bash
-# 1. Discover: slug-probe the un-routed companies against 7 public ATS APIs
-#    (Greenhouse, Lever, Ashby, SmartRecruiters, Recruitee, Breezy, BambooHR).
-#    Output: output/ats-probe-YYYY-MM-DD.csv
-node probe-ats.mjs
+jq -r '.[] | select((.countries // []) | length >= 5) | "\(.name)\t\(.countries | length)\t\(.countries | join(", "))"' data/companies_v2.json | sort -t$'\t' -k2 -nr | head -20
+```
 
-# 2. Review the CSV by hand — sort by matched_ats and eyeball sample_title for
-#    collisions (short slugs on common words can false-positive).
+### 3. Filter by tech stack
 
-# 3. Dry-run merge — see what would be added to companies.json, no file changes
+```bash
+# Unity studios
+jq -r '.[] | select((.tech_stack // []) | index("unity")) | .name' data/companies_v2.json
+
+# Unreal + AAA console
+jq -r '.[] | select((.tech_stack // []) | index("unreal")) | select((.game_genre // []) | index("pc-console-aaa")) | .name' data/companies_v2.json
+```
+
+### 4. Filter by ATS host (useful if you've memorized one vendor's form)
+
+```bash
+jq -r '.[] | select(.ats_links[]? | test("greenhouse.io")) | "\(.name)\t\(.ats_links[])"' data/companies_v2.json
+```
+
+### 5. In JavaScript
+
+```js
+import companies from './data/companies_v2.json' assert { type: 'json' };
+
+const gamingInJapan = companies.filter(
+  c => c.industry_category === 'gaming' && c.countries?.includes('Japan')
+);
+```
+
+Use these to narrow down to a shortlist, then feed that shortlist to the harvester below to pull live openings.
+
+---
+
+## Harvesting live jobs — `harvest.mjs`
+
+`harvest.mjs` reads `data/companies_v2.json`, routes each company through the ATS adapter registry, calls the public API for that ATS, applies your keyword and location filters, and writes a CSV of current openings.
+
+```bash
+# 1. Install
+npm install
+
+# 2. (optional) Point the harvester at roles you actually want — edit portals.yml
+cp templates/portals.example.yml portals.yml
+
+# 3. Run it
+node harvest.mjs                            # full sweep across all routable companies
+node harvest.mjs --dry-run                  # count only, no CSV
+node harvest.mjs --limit 50 --dry-run       # quick smoke test
+```
+
+### Filter flags
+
+| Flag | Effect |
+|---|---|
+| `--industry gaming` \| `--industry tech` | Only companies whose `industry_category` matches |
+| `--country india` (or `us`, `uk`, `eu`, `apac`, `remote`, `japan`, `germany`, `france`, `canada`, `australia`, `netherlands`, `singapore`, …) | Filters jobs by location keywords at harvest time. Unknown values are used literally, so `--country Portugal` works too |
+| `--company "Riot Games"` | Single-company run (substring match) |
+| `--ats greenhouse` | Only companies routed to one adapter — handy for debugging |
+| `--limit 20` | Stop after N routable companies |
+| `--no-filter` | Skip keyword/location filtering — dump everything |
+
+### Output
+
+- `output/jobs-YYYY-MM-DD.csv` — the matched openings: company, title, location, URL, tech stack.
+- `output/jobs-manual-YYYY-MM-DD.csv` — companies whose `ats_links` point at LinkedIn/Wellfound/similar (no public API) — flagged for you to scrape manually.
+
+### How to think about the two filter layers
+
+The dataset's `countries` field tells you **where a company has historically posted jobs** — good for building a shortlist. The harvester's `--country` / `portals.yml` filters run against **the live feed**, matching on location keywords in each specific posting. Use the dataset to pick your targets, then let the harvester apply a second, per-posting filter.
+
+---
+
+## Expanding the dataset — `probe-ats.mjs`
+
+Companies come and go on ATS platforms. `probe-ats.mjs` slug-probes every un-routed company in `data/companies_v2.json` against seven public ATS APIs (Greenhouse, Lever, Ashby, SmartRecruiters, Recruitee, Breezy, BambooHR), discovers boards that were missed at ingest, and writes a candidate CSV you can merge back.
+
+```bash
+# 1. Discover
+node probe-ats.mjs                                              # ~40 min, writes output/ats-probe-YYYY-MM-DD.csv
+
+# 2. Review the CSV — sort by matched_ats, eyeball sample_title for slug collisions
+
+# 3. Dry-run merge — see what would change
 node merge-probe-hits.mjs --csv output/ats-probe-YYYY-MM-DD.csv
 
-# 4. Apply the merge — backup is written automatically
+# 4. Apply (writes a backup first, idempotent)
 node merge-probe-hits.mjs --csv output/ats-probe-YYYY-MM-DD.csv --write
 ```
 
-Full sweep of ~10K un-routed companies takes **~40 minutes** on a typical connection. Workable and Personio are skipped by default because they IP-rate-limit aggressively; re-enable them in `probe-ats.mjs` (`PER_ATS_MAX`) if you want to probe them as a separate slow pass.
+Workable and Personio are skipped by default (aggressive IP rate-limits); flip them on in `probe-ats.mjs` if you want a slower separate pass.
 
-The merge script is idempotent — re-running it skips URLs already present — so it's safe to run as often as you want.
+---
 
-## Staying in Sync with Upstream
+## Regenerating the `countries` field
 
-Two paths are available, not mutually exclusive.
-
-### Path 1: `update-system.mjs` (works out of the box — no setup required)
+`enrich-companies-countries.mjs` rebuilds the `countries` array on every company in `companies_v2.json` by joining the internal jobs → locations tables. It's **Outscal-internal** — you need credentials to the production MongoDB to run it — but the script itself is included so the derivation logic is transparent.
 
 ```bash
-node update-system.mjs check      # see if a new upstream version is published
-node update-system.mjs apply      # apply only system-layer files — your data is never touched
+MONGO_URI="mongodb+srv://<user>:<pw>@<cluster>/outscal" node enrich-companies-countries.mjs
+```
+
+The script writes a `.bak` sibling file before overwriting, and the aggregation it runs is the same one shown in the script header — easy to adapt if you have your own jobs dataset.
+
+---
+
+## Staying in sync with upstream career-ops
+
+Two paths, not mutually exclusive.
+
+### Path 1: `update-system.mjs` (zero setup)
+
+```bash
+node update-system.mjs check      # is a new upstream version published?
+node update-system.mjs apply      # pull system-layer files only
 node update-system.mjs rollback   # undo the last update
 ```
 
-This is a santifer-designed auto-updater that pulls ONLY generic system-layer files (modes, PDF scripts, dashboard, templates) from [santifer/career-ops](https://github.com/santifer/career-ops). The upstream repository URL is **hardcoded inside the script** — so anyone who clones this fork gets the sync mechanism immediately with zero git configuration. User-layer files (`cv.md`, `config/profile.yml`, `modes/_profile.md`, `data/`, `reports/`, `output/`) and fork-specific files (`harvest.mjs`, `adapters/`, `probe-ats.mjs`, `data/companies.json`) are never overwritten. `CLAUDE.md` also instructs the AI to run `update-system.mjs check` silently on the first message of each session, so upstream updates surface automatically.
+Pulls generic system files (modes, PDF scripts, dashboard, templates) from [santifer/career-ops](https://github.com/santifer/career-ops) — never touches `data/companies_v2.json`, `harvest.mjs`, `adapters/`, `probe-ats.mjs`, or your own `cv.md` / `config/profile.yml`. The upstream URL is hardcoded in the script, so clones get sync for free.
 
-### Path 2: Git `upstream` remote (for visibility and cherry-picking)
-
-Git remotes are **not** copied during `git clone`, so you need to add the upstream remote manually once after cloning:
+### Path 2: Git `upstream` remote (for visibility / cherry-picking)
 
 ```bash
 git remote add upstream https://github.com/santifer/career-ops.git
-git remote set-url --push upstream DISABLED   # safety: prevent accidental pushes to upstream
+git remote set-url --push upstream DISABLED
 git fetch upstream
+git log upstream/main --oneline
+git cherry-pick <sha>
 ```
 
-After that, you can explore upstream:
-```bash
-git log upstream/main --oneline             # see what santifer has released
-git show upstream/<sha> -- path/to/file     # preview a specific upstream change
-git cherry-pick <sha>                       # selectively apply an upstream commit
-```
+Direct `git merge upstream/main` is not recommended — this fork's history is a clean initial commit without shared history with upstream.
 
-Direct `git merge upstream/main` is **not recommended** — this fork's git history is a clean initial commit and does not share history with upstream, so merges would require `--allow-unrelated-histories` and produce large conflicts. Use `update-system.mjs` for routine updates, or manual cherry-picks when you want to pull a specific upstream change.
+---
 
-## Features
+## What else is in this repo
 
-| Feature | Description |
-|---------|-------------|
-| **Auto-Pipeline** | Paste a URL, get a full evaluation + PDF + tracker entry |
-| **6-Block Evaluation** | Role summary, CV match, level strategy, comp research, personalization, interview prep (STAR+R) |
-| **Interview Story Bank** | Accumulates STAR+Reflection stories across evaluations -- 5-10 master stories that answer any behavioral question |
-| **Negotiation Scripts** | Salary negotiation frameworks, geographic discount pushback, competing offer leverage |
-| **ATS PDF Generation** | Keyword-injected CVs with Space Grotesk + DM Sans design |
-| **Portal Scanner** | 45+ companies pre-configured (Anthropic, OpenAI, ElevenLabs, Retool, n8n...) + custom queries across Ashby, Greenhouse, Lever, Wellfound |
-| **Batch Processing** | Parallel evaluation with `claude -p` workers |
-| **Dashboard TUI** | Terminal UI to browse, filter, and sort your pipeline |
-| **Human-in-the-Loop** | AI evaluates and recommends, you decide and act. The system never submits an application -- you always have the final call |
-| **Pipeline Integrity** | Automated merge, dedup, status normalization, health checks |
+The upstream career-ops system is still fully present and functional. You get it for free on top of the dataset and harvester:
 
-## Quick Start
+- Paste a job URL → full A-G evaluation, tailored PDF CV, tracker entry
+- Portal scanner, batch evaluation with parallel workers
+- Terminal dashboard (`dashboard/`) for browsing your pipeline
+- Interview prep / story bank, follow-up cadence, negotiation scripts
+- Slash command — `/outscal-jobs` (alias `/career-ops`) — for Claude Code and OpenCode users
 
-```bash
-# 1. Clone and install
-git clone https://github.com/santifer/career-ops.git
-cd career-ops && npm install
-npx playwright install chromium   # Required for PDF generation
+None of that is required. If you only want the dataset and the harvester, you can ignore `modes/`, `batch/`, `dashboard/`, `generate-pdf.mjs`, and the `.claude/` skills entirely.
 
-# 2. Check setup
-npm run doctor                     # Validates all prerequisites
+---
 
-# 3. Configure
-cp config/profile.example.yml config/profile.yml  # Edit with your details
-cp templates/portals.example.yml portals.yml       # Customize companies
-
-# 4. Add your CV
-# Create cv.md in the project root with your CV in markdown
-
-# 5. Personalize with Claude
-claude   # Open Claude Code in this directory
-
-# Then ask Claude to adapt the system to you:
-# "Change the archetypes to backend engineering roles"
-# "Translate the modes to English"
-# "Add these 5 companies to portals.yml"
-# "Update my profile with this CV I'm pasting"
-
-# 6. Start using
-# Paste a job URL or run /career-ops
-```
-
-> **The system is designed to be customized by Claude itself.** Modes, archetypes, scoring weights, negotiation scripts -- just ask Claude to change them. It reads the same files it uses, so it knows exactly what to edit.
-
-See [docs/SETUP.md](docs/SETUP.md) for the full setup guide.
-
-## Usage
-
-Career-ops is a single slash command with multiple modes:
+## Project structure (the parts this README is about)
 
 ```
-/career-ops                → Show all available commands
-/career-ops {paste a JD}   → Full auto-pipeline (evaluate + PDF + tracker)
-/career-ops scan           → Scan portals for new offers
-/career-ops pdf            → Generate ATS-optimized CV
-/career-ops batch          → Batch evaluate multiple offers
-/career-ops tracker        → View application status
-/career-ops apply          → Fill application forms with AI
-/career-ops pipeline       → Process pending URLs
-/career-ops contacto       → LinkedIn outreach message
-/career-ops deep           → Deep company research
-/career-ops training       → Evaluate a course/cert
-/career-ops project        → Evaluate a portfolio project
+open-jobs/
+├── data/
+│   └── companies_v2.json             # The dataset. 12,144 companies.
+├── adapters/                         # 13 ATS adapters (common detect/fetchJobs interface)
+├── harvest.mjs                       # Main harvester — dataset → CSV of live jobs
+├── probe-ats.mjs                     # Dataset expansion: slug-probe for new ATS boards
+├── merge-probe-hits.mjs              # Apply probe output back to companies_v2.json
+├── enrich-companies-countries.mjs    # Rebuild the `countries` field from the internal DB
+├── portals.yml                       # Your title/location filters for harvest.mjs
+└── output/                           # Harvest CSVs (gitignored)
 ```
 
-Or just paste a job URL or description directly -- career-ops auto-detects it and runs the full pipeline.
+---
 
-## How It Works
+## License and disclaimer
 
-```
-You paste a job URL or description
-        │
-        ▼
-┌──────────────────┐
-│  Archetype       │  Classifies: LLMOps / Agentic / PM / SA / FDE / Transformation
-│  Detection       │
-└────────┬─────────┘
-         │
-┌────────▼─────────┐
-│  A-F Evaluation  │  Match, gaps, comp research, STAR stories
-│  (reads cv.md)   │
-└────────┬─────────┘
-         │
-    ┌────┼────┐
-    ▼    ▼    ▼
- Report  PDF  Tracker
-  .md   .pdf   .tsv
-```
+MIT. See [`LICENSE`](LICENSE) and [`LEGAL_DISCLAIMER.md`](LEGAL_DISCLAIMER.md).
 
-## Pre-configured Portals
+Using the harvester means hitting third-party ATS APIs (Greenhouse, Lever, Ashby, etc.). You are responsible for complying with each ATS's terms of service. Don't use this tool to spam employers or overwhelm ATS systems — the harvester's concurrency (`CONCURRENCY = 10` in `harvest.mjs`) and the probe's rate-limit handling exist to keep you in the nice-citizen zone. Leave them that way.
 
-The scanner comes with **45+ companies** ready to scan and **19 search queries** across major job boards. Copy `templates/portals.example.yml` to `portals.yml` and add your own:
-
-**AI Labs:** Anthropic, OpenAI, Mistral, Cohere, LangChain, Pinecone
-**Voice AI:** ElevenLabs, PolyAI, Parloa, Hume AI, Deepgram, Vapi, Bland AI
-**AI Platforms:** Retool, Airtable, Vercel, Temporal, Glean, Arize AI
-**Contact Center:** Ada, LivePerson, Sierra, Decagon, Talkdesk, Genesys
-**Enterprise:** Salesforce, Twilio, Gong, Dialpad
-**LLMOps:** Langfuse, Weights & Biases, Lindy, Cognigy, Speechmatics
-**Automation:** n8n, Zapier, Make.com
-**European:** Factorial, Attio, Tinybird, Clarity AI, Travelperk
-
-**Job boards searched:** Ashby, Greenhouse, Lever, Wellfound, Workable, RemoteFront
-
-## Dashboard TUI
-
-The built-in terminal dashboard lets you browse your pipeline visually:
-
-```bash
-cd dashboard
-go build -o career-dashboard .
-./career-dashboard --path ..
-```
-
-Features: 6 filter tabs, 4 sort modes, grouped/flat view, lazy-loaded previews, inline status changes.
-
-## Project Structure
-
-```
-career-ops/
-├── CLAUDE.md                    # Agent instructions
-├── cv.md                        # Your CV (create this)
-├── article-digest.md            # Your proof points (optional)
-├── config/
-│   └── profile.example.yml      # Template for your profile
-├── modes/                       # 14 skill modes
-│   ├── _shared.md               # Shared context (customize this)
-│   ├── oferta.md                # Single evaluation
-│   ├── pdf.md                   # PDF generation
-│   ├── scan.md                  # Portal scanner
-│   ├── batch.md                 # Batch processing
-│   └── ...
-├── templates/
-│   ├── cv-template.html         # ATS-optimized CV template
-│   ├── portals.example.yml      # Scanner config template
-│   └── states.yml               # Canonical statuses
-├── batch/
-│   ├── batch-prompt.md          # Self-contained worker prompt
-│   └── batch-runner.sh          # Orchestrator script
-├── dashboard/                   # Go TUI pipeline viewer
-├── data/                        # Your tracking data (gitignored)
-├── reports/                     # Evaluation reports (gitignored)
-├── output/                      # Generated PDFs (gitignored)
-├── fonts/                       # Space Grotesk + DM Sans
-├── docs/                        # Setup, customization, architecture
-└── examples/                    # Sample CV, report, proof points
-```
-
-## Tech Stack
-
-![Claude Code](https://img.shields.io/badge/Claude_Code-000?style=flat&logo=anthropic&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)
-![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat&logo=playwright&logoColor=white)
-![Go](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white)
-![Bubble Tea](https://img.shields.io/badge/Bubble_Tea-FF75B5?style=flat&logo=go&logoColor=white)
-
-- **Agent**: Claude Code with custom skills and modes
-- **PDF**: Playwright/Puppeteer + HTML template
-- **Scanner**: Playwright + Greenhouse API + WebSearch
-- **Dashboard**: Go + Bubble Tea + Lipgloss (Catppuccin Mocha theme)
-- **Data**: Markdown tables + YAML config + TSV batch files
-
-## Also Open Source
-
-- **[cv-santiago](https://github.com/santifer/cv-santiago)** -- The portfolio website (santifer.io) with AI chatbot, LLMOps dashboard, and case studies. If you need a portfolio to showcase alongside your job search, fork it and make it yours.
-
-## About the Author
-
-I'm Santiago -- Head of Applied AI, former founder (built and sold a business that still runs with my name on it). I built career-ops to manage my own job search. It worked: I used it to land my current role.
-
-My portfolio and other open source projects → [santifer.io](https://santifer.io)
-
-☕ [Buy me a coffee](https://buymeacoffee.com/santifer) if career-ops helped your job search.
-
-## Star History
-
-<a href="https://www.star-history.com/?repos=santifer%2Fcareer-ops&type=timeline&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=santifer/career-ops&type=timeline&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=santifer/career-ops&type=timeline&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=santifer/career-ops&type=timeline&legend=top-left" />
- </picture>
-</a>
-
-## Disclaimer
-
-**career-ops is a local, open-source tool — NOT a hosted service.** By using this software, you acknowledge:
-
-1. **You control your data.** Your CV, contact info, and personal data stay on your machine and are sent directly to the AI provider you choose (Anthropic, OpenAI, etc.). We do not collect, store, or have access to any of your data.
-2. **You control the AI.** The default prompts instruct the AI not to auto-submit applications, but AI models can behave unpredictably. If you modify the prompts or use different models, you do so at your own risk. **Always review AI-generated content for accuracy before submitting.**
-3. **You comply with third-party ToS.** You must use this tool in accordance with the Terms of Service of the career portals you interact with (Greenhouse, Lever, Workday, LinkedIn, etc.). Do not use this tool to spam employers or overwhelm ATS systems.
-4. **No guarantees.** Evaluations are recommendations, not truth. AI models may hallucinate skills or experience. The authors are not liable for employment outcomes, rejected applications, account restrictions, or any other consequences.
-
-See [LEGAL_DISCLAIMER.md](LEGAL_DISCLAIMER.md) for full details. This software is provided under the [MIT License](LICENSE) "as is", without warranty of any kind.
-
-## Contributors
-
-<a href="https://github.com/santifer/career-ops/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=santifer/career-ops" />
-</a>
-
-Got hired using career-ops? [Share your story!](https://github.com/santifer/career-ops/issues/new?template=i-got-hired.yml)
-
-## License
-
-MIT
-
-## Let's Connect
-
-[![Website](https://img.shields.io/badge/santifer.io-000?style=for-the-badge&logo=safari&logoColor=white)](https://santifer.io)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/santifer)
-[![X](https://img.shields.io/badge/X-000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/santifer)
-[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/8pRpHETxa4)
-[![Email](https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:hi@santifer.io)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/santifer)
+No guarantees about data freshness. The `countries` field is a point-in-time snapshot of the internal jobs table; `ats_links` can go stale as companies migrate vendors. Re-run `probe-ats.mjs` and `enrich-companies-countries.mjs` periodically to keep the dataset current.
